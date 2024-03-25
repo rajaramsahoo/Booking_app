@@ -1,23 +1,45 @@
 import { useState } from "react";
 import Layout from "../../components/layout/Layout";
-import {  toast } from 'react-toastify';
-
+import toast from "react-hot-toast";
+import axios from "axios";
+import "../../styles/AuthStyles.css"
+import { useNavigate } from "react-router-dom";
 const Register = () => {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+  const [answer, setAnswer] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    toast.success("Register Successfully")
-  }
+  const navigate = useNavigate();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await axios.post(`/api/v1/auth/register`, {
+        name,
+        password,
+        email,
+        phone,
+        address,
+        answer
+      });
+      if (res && res.data.success) {
+        toast.success(res.data && res.data.message);
+        navigate("/login");
+      } else {
+        toast.error(res.data.message);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Something Went Wrong In Register");
+    }
+  };
   return (
     <Layout title={"Register ECommerce App"}>
-      <div className="register">
-        <h1>Register Page</h1>
+      <div className="form-container">
         <form onSubmit={handleSubmit}>
+        <h4 className="title">REGISTER FORM</h4>
           <div className="mb-3">
             <input
               type="text"
@@ -70,6 +92,17 @@ const Register = () => {
               className="form-control"
               id="exampleInputEmail1"
               placeholder="Enter Your Address"
+              required
+            />
+          </div>
+          <div className="mb-3">
+            <input
+              type="test"
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+              className="form-control"
+              id="exampleInputEmail1"
+              placeholder="Enter Your Father Name"
               required
             />
           </div>

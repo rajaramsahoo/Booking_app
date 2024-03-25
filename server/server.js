@@ -4,8 +4,10 @@ import 'dotenv/config'
 import "./config/dbConnect.js"
 import morgan from "morgan";
 import authRoutes from "./routes/authRoute.js"
+
 const app = express();
 const PORT = process.env.PORT || 3040;
+
 
 app.use(express.json());
 app.use(morgan("dev"));
