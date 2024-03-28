@@ -1,21 +1,21 @@
 import "./spinner.css";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-const Spinner = () => {
-  const [count, setCount] = useState(5);
+const Spinner = ({ path = "login" }) => {
+  const [count, setCount] = useState(3);
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCount((prevValue) => prevValue-1);
+      setCount((prevValue) => prevValue - 1);
     }, 1000);
     count === 0 &&
-      navigate("/login", {
+      navigate(`/${path}`, {
         state: location.pathname,
       });
     return () => clearInterval(interval);
-  }, [count, navigate, location]);
+  }, [count, navigate, location, path]);
 
   return (
     <>
@@ -47,9 +47,9 @@ const Spinner = () => {
         <div className="spinner-grow text-dark" role="status">
           <span className="visually-hidden">Loading...</span>
         </div>
-        <button class="btn btn-primary" type="button" disabled>
+        <button className="btn btn-primary" type="button" disabled>
           <span
-            class="spinner-border spinner-border-sm"
+            className="spinner-border spinner-border-sm"
             aria-hidden="true"
           ></span>
           <span role="status">Loading...</span>
