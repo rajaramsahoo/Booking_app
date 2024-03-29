@@ -3,6 +3,7 @@ import AdminMenu from "../../components/layout/AdminMenu";
 import Layout from "../../components/layout/Layout";
 import toast from "react-hot-toast";
 import axios from "axios";
+import CategoryForm from "../../components/form/CategoryForm";
 const CreateCategory = () => {
   const [categories, setCategories] = useState([]);
 
@@ -31,6 +32,9 @@ const CreateCategory = () => {
           </div>
           <div className="col-md-9">
             <h3>MANAGE CATAGORY</h3>
+            <div className="p-3">
+              <CategoryForm/>
+            </div>
             <div className="w-75">
               <table className="table">
                 <thead>
