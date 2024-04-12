@@ -68,8 +68,8 @@ export const updateCategoryController = async (req, res) => {
 
 export const allCategoryController = async (req, res) => {
   try {
-    let allCategory = await categoryModel.find({});
-    if (!allCategory) {
+    let allCategory = await categoryModel.find();
+    if (!allCategory.length) {
       return res.status(201).send({
         success: true,
         message: "NO CATEGORY WAS CREATED",
@@ -84,7 +84,7 @@ export const allCategoryController = async (req, res) => {
     console.log(error);
     return res.status(500).send({
       success: false,
-      error,
+      error: error.message,
       message: "Error while getting all categories",
     });
   }

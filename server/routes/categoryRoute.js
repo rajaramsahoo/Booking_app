@@ -21,7 +21,7 @@ router.put(
   isAdmin,
   updateCategoryController
 );
-router.get("/getall-category", requireSignIn, isAdmin, allCategoryController);
+router.get("/getall/getall-category", requireSignIn, allCategoryController);
 router.get("/single-category/:slug", singleCategoryController);
 router.delete(
   "/delete-category/:id",

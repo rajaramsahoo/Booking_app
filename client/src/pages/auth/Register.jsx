@@ -2,7 +2,7 @@ import { useState } from "react";
 import Layout from "../../components/layout/Layout";
 import toast from "react-hot-toast";
 import axios from "axios";
-import "../../styles/AuthStyles.css"
+import "../../styles/AuthStyles.css";
 import { useNavigate } from "react-router-dom";
 const Register = () => {
   const [name, setName] = useState("");
@@ -22,7 +22,7 @@ const Register = () => {
         email,
         phone,
         address,
-        answer
+        answer,
       });
       if (res && res.data.success) {
         toast.success(res.data && res.data.message);
@@ -35,11 +35,12 @@ const Register = () => {
       toast.error("Something Went Wrong In Register");
     }
   };
+
   return (
     <Layout title={"Register ECommerce App"}>
       <div className="form-container">
         <form onSubmit={handleSubmit}>
-        <h4 className="title">REGISTER FORM</h4>
+          <h4 className="title">REGISTER FORM</h4>
           <div className="mb-3">
             <input
               type="text"

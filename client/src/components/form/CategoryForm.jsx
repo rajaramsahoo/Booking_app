@@ -1,6 +1,6 @@
 import React from "react";
 
-const CategoryForm = ({handleSubmit,value, setValue}) => {
+const CategoryForm = ({ handleSubmit, value, setValue }) => {
   return (
     <>
       <form onSubmit={handleSubmit}>
@@ -11,6 +11,7 @@ const CategoryForm = ({handleSubmit,value, setValue}) => {
             placeholder="Enter New Category"
             value={value}
             onChange={(e) => setValue(e.target.value)}
+            required
           />
         </div>
 

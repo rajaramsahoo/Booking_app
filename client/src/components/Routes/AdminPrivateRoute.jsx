@@ -7,7 +7,7 @@ import Spinner from "../Spinner.jsx";
 
 const AdminPrivateRoute = () => {
   const [ok, setOk] = useState(false);
-  const [auth, setAuth] = useAuth();
+  const [auth] = useAuth();
   useEffect(() => {
     const authCheck = async () => {
       // const res = await axios.get("/api/v1/auth/admin-auth", {

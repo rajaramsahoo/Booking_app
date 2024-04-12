@@ -1,17 +1,18 @@
 import userModel from "../models/userModel.js";
 import jwt from "jsonwebtoken";
-import 'dotenv/config'
+import "dotenv/config";
 //protecred Routes token base
 
 export const requireSignIn = async (req, res, next) => {
   try {
-console.log( req.headers.authorization)
-// const scKey = process
+    console.log(req.headers.authorization);
+    // const scKey = process
     const decode = jwt.verify(
       req.headers.authorization,
+
       process.env.JWT_SECRET
     );
-    console.log(decode)
+    console.log(decode);
 
     req.user = decode;
     next();

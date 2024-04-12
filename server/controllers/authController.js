@@ -163,3 +163,35 @@ export const testController = (req, res) => {
     res.send({ error });
   }
 };
+
+export const updateProfileController = async (req, res) => {
+  try {
+    const { name, password, address, phone } = req.body;
+    const user = await userModel.findById(req.user._id);
+
+    const passwordHashing = await hashPassword(password);
+    const updateUser = await userModel.findByIdAndUpdate(
+      req.user._id,
+      {
+        $set: {
+          name: name || user.name,
+          password: passwordHashing || user.password,
+          phone: phone || user.phone,
+          address: address || user.address,
+        },
+      },
+      { new: true }
+    );
+    res.status(200).send({
+      success: true,
+      message: "Profile Updated Sucessfully",
+      updateUser,
+    });
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: "Error While Update Profile ",
+      error,
+    });
+  }
+};
