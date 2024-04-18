@@ -3,70 +3,116 @@ import productModel from "../models/productModel.js";
 import categoryModel from "../models/categoryModel.js";
 import fs from "fs";
 import "dotenv/config";
-//payMent GetWay
-import braintree from "braintree";
+import Stripe from "stripe";
 import orderModel from "../models/orderModel.js";
-var gateway = new braintree.BraintreeGateway({
-  environment: braintree.Environment.Sandbox,
-  merchantId: process.env.BRAINTREE_MERCHANT_ID,
-  publicKey: process.env.BRAINTREE_PUBLIC_KEY,
-  privateKey: process.env.BRAINTREE_PRIVATE_KEY,
-});
-console.log(process.env.BRAINTREE_PRIVATE_KEY)
 
-// PAYMENT GET WAT API
-//token
-export const barinTreeController = async (req, res) => {
-  try {
-    gateway.clientToken.generate({}, function (error, response) {
-      if (error) {
-        res.status(500).send(error);
-      } else {
-        res.send(response);
-      }
-    });
-  } catch (error) {
-    console.log(error);
-  }
-};
+//payMent GetWay
+// import braintree from "braintree";
+// import orderModel from "../models/orderModel.js";
 
-//payment
-export const brainTreePaymentController = async (req, res) => {
+// var gateway = new braintree.BraintreeGateway({
+//   environment: braintree.Environment.Sandbox,
+//   merchantId: process.env.BRAINTREE_MERCHANT_ID,
+//   publicKey: process.env.BRAINTREE_PUBLIC_KEY,
+//   privateKey: process.env.BRAINTREE_PRIVATE_KEY,
+// });
+// var gateway = new braintree.BraintreeGateway({
+//   environment: braintree.Environment.Sandbox,
+//   merchantId: "9hwqxtxtstmxvxgy",
+//   publicKey: "5dj6sggf5hyc7bsk",
+//   privateKey: "2739131c669969b6e334c99c4b0c83d6",
+// });
+
+// // PAYMENT GET WAT API
+// //token
+// export const barinTreeController = async (req, res) => {
+//   try {
+//     gateway.clientToken.generate({}, function (error, response) {
+//       if (error) {
+//         res.status(500).send(error);
+//       } else {
+//         res.send(response);
+//       }
+//       console.log(response);
+//     });
+//   } catch (error) {
+//     console.log(error);
+//   }
+// };
+
+// //payment
+// export const brainTreePaymentController = async (req, res) => {
+//   try {
+//     const { cart, nonce } = req.body;
+//     let total = 0;
+//     cart.forEach((item) => {
+//       total += item.price;
+//     });
+
+//     let newTransaction = gateway.transaction.sale(
+//       {
+//         amount: total,
+//         paymentMethodNonce: nonce,
+//         options: {
+//           submitForSettlement: true,
+//         },
+//       },
+//       function (error, result) {
+//         if (result) {
+//           const order = new orderModel({
+//             products: cart,
+//             payment: result,
+//             buyer: req.user._id,
+//           }).save();
+//           res.json({ ok: true });
+//         } else {
+//           res.status(500).send(error);
+//         }
+//       }
+//     );
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).send("An error occurred");
+//   }
+// };
+
+export const createCheckoutSession = async (req, res) => {
   try {
-    const { cart, nonce } = req.body;
+    const stripe = stripePackage(
+      "sk_test_51P5FbaSEkOCsBxpdYHRqX3tRl9fHjQZsdPJxyUGNqRoFlfrx09yvYbiJoVuoXnggvWnhrxVevazpv884WURSJLl400L3ZsQpnA"
+    );
+    const { items } = req.body;
     let total = 0;
-    cart.forEach((item) => {
+    items.forEach((item) => {
       total += item.price;
     });
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: total,
+      currency: "usd",
+    });
 
-    gateway.transaction.sale(
-      {
-        amount: total,
-        paymentMethodNonce: nonce,
-        options: {
-          submitForSettlement: true,
-        },
-      },
-      async (error, result) => {
-        if (result) {
-          const order = new orderModel({
-            products: cart,
-            payment: result,
-            buyer: req.user._id,
-          });
-          await order.save();
-          res.json({ ok: true });
-        } else {
-          res.status(500).send(error);
-        }
-      }
-    );
+    const order = new orderModel({
+      paymentIntentId: paymentIntent.id,
+      amount: paymentIntent.amount,
+      currency: paymentIntent.currency,
+      items: items.map((item) => ({
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        buyer: req.user._id,
+      })),
+    });
+    await order.save();
+
+    res.status(200).json({ clientSecret: paymentIntent.client_secret });
   } catch (error) {
-    console.log(error);
-    res.status(500).send("An error occurred");
+    res.status(500).send({
+      sucess: false,
+      error,
+      message: "Eroor In Createing The Product",
+    });
   }
 };
-
 export const createProductController = async (req, res) => {
   try {
     const { name, description, price, category, quantity, shipping } =

@@ -1,18 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import Layout from "../components/layout/Layout";
 import { useCart } from "../context/cart";
 import { useAuth } from "../context/authContext";
 import { useNavigate } from "react-router-dom";
-import DropIn from "braintree-web-drop-in-react";
 import axios from "axios";
-import toast from "react-hot-toast";
+// import toast from "react-hot-toast";
+import { loadStripe } from "@stripe/stripe-js";
+
 const CartPage = () => {
   const [cart, setCart] = useCart();
   const [auth] = useAuth();
+  const [clientSecret, setClientSecret] = useState("");
   const navigate = useNavigate();
-  const [clientToken, setClientToken] = useState("");
-  const [instance, setInstence] = useState("");
-  const [loading, setLoading] = useState(false);
   const removeCartItem = (pid) => {
     try {
       let myCart = [...cart];
@@ -24,19 +23,6 @@ const CartPage = () => {
       console.log(error);
     }
   };
-  //get Payment GateWat TOKEN
-  const getToken = async () => {
-    try {
-      const { data } = await axios.get("/api/v1/product/braintree/token");
-      console.log(data?.clientToken);
-      setClientToken(data?.clientToken);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-  useEffect(() => {
-    getToken();
-  }, [auth?.token]);
 
   const totalPrice = () => {
     try {
@@ -50,22 +36,43 @@ const CartPage = () => {
       console.log(error);
     }
   };
-  const handlePayment = async () => {
-    try {
-      setLoading(true);
-      const { nonce } = await instance.requestPaymentMethod();
-      const { data } = await axios.post("/api/v1/product/braintree/payment", {
-        nonce,
-        cart,
-      });
-      setLoading(false);
-      localStorage.removeItem("cart");
-      setCart([]);
-      navigate("/dashboard/user/orders");
-      toast.success("Payment Completed Successfully ");
-    } catch (error) {
-      console.log(error);
-      setLoading(false);
+
+  useEffect(() => {
+    const fetchClientSecret = async () => {
+      try {
+        const response = await axios.post(
+          "/api/v1/product/create-checkout-session",
+          { cart }
+        );
+        setClientSecret(response.data.clientSecret);
+        console.log(clientSecret);
+      } catch (error) {
+        console.error("Failed to fetch client secret:", error);
+      }
+    };
+
+    fetchClientSecret();
+  }, [cart]);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const stripe = await loadStripe(
+      "pk_test_51P5FbaSEkOCsBxpdE2xt7pM7E4IIungHflv0n8c52zPBROsmRdmjCF4F8ImvMiVkU05ux9xuB8nUxANLN7z2leCI005zeSU5c1"
+    );
+    const { paymentIntent, error } = await stripe.confirmCardPayment(
+      clientSecret,
+      {
+        payment_method: {
+          card:cart,
+        },
+      }
+    );
+
+    if (error) {
+      setError(error.message);
+    } else {
+      console.log("Payment successful:", paymentIntent);
+      // Handle successful payment
     }
   };
   return (
@@ -156,7 +163,7 @@ const CartPage = () => {
                 )}
               </div>
             )}
-            <div className="mt-2">
+            {/* <div className="mt-2">
               {!clientToken || !cart?.length ? (
                 ""
               ) : (
@@ -171,12 +178,21 @@ const CartPage = () => {
                   <button
                     className="btn btn-primary mb-2"
                     onClick={handlePayment}
-                    disabled={!loading || !instance || !auth?.user?.address}
+                    disabled={!instance || !auth?.user?.address || loading}
                   >
                     {loading ? "Processing.............." : "Make Payment"}
                   </button>
                 </>
               )}
+            </div> */}
+            <div className="mt-2">
+              <button
+                className="btn btn-primary mb-2"
+                onClick={handleSubmit}
+                disabled={!auth?.user}
+              >
+                make payment
+              </button>
             </div>
           </div>
         </div>
