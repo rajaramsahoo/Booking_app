@@ -6,7 +6,6 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 // import toast from "react-hot-toast";
 import { loadStripe } from "@stripe/stripe-js";
-
 const CartPage = () => {
   const [cart, setCart] = useCart();
   const [auth] = useAuth();
@@ -63,7 +62,7 @@ const CartPage = () => {
       clientSecret,
       {
         payment_method: {
-          card:cart,
+          card: "",
         },
       }
     );
@@ -75,6 +74,81 @@ const CartPage = () => {
       // Handle successful payment
     }
   };
+
+  //rzpinstance window
+  function loadScript(src) {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = src;
+      script.onload = () => {
+        resolve(true);
+      };
+      script.onerror = () => {
+        resolve(false);
+      };
+      document.body.appendChild(script);
+    });
+  }
+
+  //default url for razorpay script is "https://checkout.razorpay.com/v1/checkout.js"
+  const displayRazorpay = async (orderDetails) => {
+    const response = await loadScript(
+      "https://checkout.razorpay.com/v1/checkout.js"
+    );
+
+    if (!response) {
+      console.log("Failed to load razorpay window, try again");
+      return
+    }
+
+    // creating a new order
+    const result = await axios.post("/api/v1/payment/rzpPayment",);
+    console.log(result)
+    if (!result) {
+      console.log("No response from server, try again");
+      return
+    }
+
+    const {amount, id: order_id, currency} = result.data;
+console.log(amount,order_id,currency)
+
+    const options = {
+      key: process.env.REACT_APP, // Enter the Key ID generated from the Dashboard
+      amount: amount.toString(),
+      currency: currency,
+      name: "Soumya Corp.",
+      description: "Test Transaction",
+      order_id: order_id,
+      handler: async function (response) {
+          const data = {
+              orderCreationId: order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpayOrderId: response.razorpay_order_id,
+              razorpaySignature: response.razorpay_signature,
+          };
+
+          const result = await axios.post("http://localhost:5000/payment/success", data);
+
+          alert(result.data.msg);
+      },
+      prefill: {
+          name: "Soumya Dey",
+          email: "SoumyaDey@example.com",
+          contact: "9999999999",
+      },
+      notes: {
+          address: "Soumya Dey Corporate Office",
+      },
+      theme: {
+          color: "#61dafb",
+      },
+  };
+
+  const paymentObject = new window.Razorpay(options);
+  console.log("raja")
+  paymentObject.open();
+  };
+
   return (
     <Layout>
       <div className="container">
@@ -186,13 +260,17 @@ const CartPage = () => {
               )}
             </div> */}
             <div className="mt-2">
-              <button
-                className="btn btn-primary mb-2"
-                onClick={handleSubmit}
-                disabled={!auth?.user}
-              >
-                make payment
-              </button>
+              {!cart?.length ? (
+                ""
+              ) : (
+                <button
+                  className="btn btn-primary mb-2"
+                  onClick={displayRazorpay}
+                  disabled={!auth?.user}
+                >
+                  make payment
+                </button>
+              )}
             </div>
           </div>
         </div>

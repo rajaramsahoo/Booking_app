@@ -4,6 +4,7 @@ import categoryModel from "../models/categoryModel.js";
 import fs from "fs";
 import "dotenv/config";
 import Stripe from "stripe";
+import stripePackage from "stripe"
 import orderModel from "../models/orderModel.js";
 
 //payMent GetWay
@@ -78,7 +79,7 @@ import orderModel from "../models/orderModel.js";
 
 export const createCheckoutSession = async (req, res) => {
   try {
-    const stripe = stripePackage(
+    const Stripe = stripePackage(
       "sk_test_51P5FbaSEkOCsBxpdYHRqX3tRl9fHjQZsdPJxyUGNqRoFlfrx09yvYbiJoVuoXnggvWnhrxVevazpv884WURSJLl400L3ZsQpnA"
     );
     const { items } = req.body;
@@ -86,9 +87,9 @@ export const createCheckoutSession = async (req, res) => {
     items.forEach((item) => {
       total += item.price;
     });
-    const paymentIntent = await stripe.paymentIntents.create({
+    const paymentIntent = await Stripe.paymentIntents.create({
       amount: total,
-      currency: "usd",
+      currency: "inr",
     });
 
     const order = new orderModel({
